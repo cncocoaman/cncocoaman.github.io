@@ -1,453 +1,577 @@
-﻿<!DOCTYPE html>
-<html lang="cn">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
-    <!--==================== UNICONS 图标====================-->
-    <link
-      rel="stylesheet"
-      href="https://unicons.iconscout.com/release/v3.0.6/css/line.css"
-    />
-    <!--==================== SWIPER CSS ====================-->
-    <link rel="stylesheet" href="assets/css/swiper-bundle.min.css" />
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>川西大环线｜订单版｜2026年9月25日—10月5日</title>
+<meta name="description" content="按已预订航班与10晚酒店重制的川西大环线交互地图：成都、康定、新都桥、理塘、巴塘、白玉、甘孜、色达、玉科、四姑娘山。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   Design System — edit :root to change theme
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-primary:    #ffffff;
+  --bg-secondary:  #f5f5f7;
+  --bg-tertiary:   #fbfbfd;
+  --bg-grouped:    #f2f2f7;
+  --bg-elevated:   #ffffff;
+  --text-primary:   #1d1d1f;
+  --text-secondary: #86868b;
+  --text-tertiary:  #aeaeb2;
+  --accent:        #0071e3;
+  --accent-hover:  #0077ed;
+  --tint-red:    #ff3b30;
+  --tint-orange: #ff9500;
+  --tint-green:  #34c759;
+  --tint-blue:   #007aff;
+  --tint-purple: #af52de;
+  --tint-pink:   #ff2d55;
+  --separator:  rgba(60, 60, 67, .12);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 14px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 30px rgba(0,0,0,.12);
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+               "Helvetica Neue", "Arial", sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.47059;
+  letter-spacing: -0.022em;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-    <!--==================== CSS ====================-->
-    <link rel="stylesheet" href="assets/css/styles.css" />
-    <!-- iconfont font class 方式引用图标 -->
-    <!-- <link
-      rel="stylesheet"
-      href="https://at.alicdn.com/t/c/font_3900458_82z46p85im.css"
-    /> -->
+/* ── Map ── */
+#map { width: 100%; height: 40vh; min-height: 280px; position: sticky; top: 0; z-index: 100; }
+.locate-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border: none; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.locate-btn.active { color: #007aff; }
+@keyframes loc-pulse {
+  0%   { transform: scale(1); opacity: .55; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.loc-pulse {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(0,122,255,.25);
+  animation: loc-pulse 1.6s ease-out infinite;
+}
 
-    <title>Responsive-cocoaman</title>
-  </head>
-  <body>
-    <!--==================== HEADER ====================-->
-    <header class="header scroll-header" id="header">
-      <nav class="nav container">
-        <a href="#" class="nav__logo" i18n="name">COCOAMAN</a>
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: rgba(255,255,255,.85); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px); position: sticky; top: 40vh; z-index: 99;
+  border-bottom: .5px solid var(--separator); scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 7px 16px; border-radius: 980px; border: none;
+  background: var(--bg-grouped); color: var(--text-secondary);
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all .25s ease;
+  white-space: nowrap; letter-spacing: -0.01em;
+}
+.tab:active { transform: scale(.96); }
+.tab.active { background: var(--accent); color: #fff; }
 
-        <div class="nav__menu" id="nav-menu">
-          <ul class="nav__list grid">
-            <li class="nav__item">
-              <a href="#home" class="nav__link">
-                <i class="uil uil-estate nav__icon"></i>
-                <p i18n="home">Home</p>
-              </a>
-            </li>
-            <li class="nav__item">
-              <a href="#about" class="nav__link">
-                <i class="uil uil-user nav__icon"></i>
-                <p i18n="about">About</p>
-              </a>
-            </li>
-            <li class="nav__item">
-              <a href="#skills" class="nav__link">
-                <i class="uil uil-file-alt nav__icon"></i>
-                <p i18n="skills">Skills</p>
-              </a>
-            </li>
-            <!-- <li class="nav__item">
-              <a href="#portfolio" class="nav__link">
-                <i class="uil uil-scenery nav__icon"></i>
-                <p i18n="portfolio">Portfolio</p>
-              </a>
-            </li> -->
-            <li class="nav__item">
-              <a href="#contact" class="nav__link">
-                <i class="uil uil-message nav__icon"></i>
-                <p i18n="contact">Contactme</p>
-              </a>
-            </li>
-            <li class="nav__item">
-              <div class="nav__link" id="translate" value="en">
-                <svg class="icon nav__icon-svg" aria-hidden="true">
-                  <use xlink:href="#icon-fanyi"></use>
-                </svg>
-                <a class="=nav__link" id="nav__translate">Translate</a>
-              </div>
-            </li>
-          </ul>
-          <i class="uil uil-times nav__close" id="nav-close"></i>
-        </div>
+/* ── Main content ── */
+.content { max-width: 680px; margin: 0 auto; padding: 16px 16px calc(24px + var(--safe-bottom)); }
 
-        <div class="nav__btns">
-          <i class="uil uil-moon change-theme" id="theme-button"></i>
-          <div class="nav__toggle" id="nav-toggle">
-            <i class="uil uil-apps"></i>
-          </div>
-        </div>
-      </nav>
-    </header>
+/* ── Overview ── */
+.hero { text-align: center; padding: 28px 20px 20px; }
+.hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.hero .subtitle { font-size: 17px; color: var(--text-secondary); margin-top: 6px; font-weight: 400; }
 
-    <!--==================== MAIN ====================-->
-    <main class="main">
-      <!--==================== HOME ====================-->
-      <section class="home section" id="home">
-        <div class="home__container container grid">
-          <div class="home__content grid">
-            <div class="home__social">
-              <a
-                href="https://gitee.com/sunxiangtian"
-                target="_blank"
-                class="home__social-icon"
-              >
-                <!-- <i class="uil uil-linkedin-alt"></i> -->
-                <svg
-                  t="1674798484640"
-                  viewBox="0 0 1024 1024"
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                  p-id="2757"
-                >
-                  <path
-                    d="M512 1024C229.222 1024 0 794.778 0 512S229.222 0 512 0s512 229.222 512 512-229.222 512-512 512z m259.149-568.883h-290.74a25.293 25.293 0 0 0-25.292 25.293l-0.026 63.206c0 13.952 11.315 25.293 25.267 25.293h177.024c13.978 0 25.293 11.315 25.293 25.267v12.646a75.853 75.853 0 0 1-75.853 75.853h-240.23a25.293 25.293 0 0 1-25.267-25.293V417.203a75.853 75.853 0 0 1 75.827-75.853h353.946a25.293 25.293 0 0 0 25.267-25.292l0.077-63.207a25.293 25.293 0 0 0-25.268-25.293H417.152a189.62 189.62 0 0 0-189.62 189.645V771.15c0 13.977 11.316 25.293 25.294 25.293h372.94a170.65 170.65 0 0 0 170.65-170.65V480.384a25.293 25.293 0 0 0-25.293-25.267z"
-                    fill="hsl(250deg 69% 61%)"
-                    p-id="2758"
-                  ></path>
-                </svg>
-              </a>
-              <a
-                href="https://github.com/cncocoaman"
-                target="_blank"
-                class="home__social-icon"
-              >
-                <i class="uil uil-github-alt"></i>
-              </a>
-            </div>
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.info-card { background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.info-card .label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .02em; margin-bottom: 6px; }
+.info-card .value { font-size: 15px; font-weight: 600; line-height: 1.4; }
 
-            <div class="home__img">
-              <svg
-                class="home__blob"
-                viewBox="0 0 200 187"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink"
-              >
-                <mask id="mask0" mask-type="alpha">
-                  <path
-                    d="M190.312 36.4879C206.582 62.1187 201.309 102.826 182.328 134.186C163.346 165.547 
-                                130.807 187.559 100.226 186.353C69.6454 185.297 41.0228 161.023 21.7403 129.362C2.45775 
-                                97.8511 -7.48481 59.1033 6.67581 34.5279C20.9871 10.1032 59.7028 -0.149132 97.9666 
-                                0.00163737C136.23 0.303176 174.193 10.857 190.312 36.4879Z"
-                  />
-                </mask>
-                <g mask="url(#mask0)">
-                  <path
-                    d="M190.312 36.4879C206.582 62.1187 201.309 102.826 182.328 134.186C163.346 
-                                165.547 130.807 187.559 100.226 186.353C69.6454 185.297 41.0228 161.023 21.7403 
-                                129.362C2.45775 97.8511 -7.48481 59.1033 6.67581 34.5279C20.9871 10.1032 59.7028 
-                                -0.149132 97.9666 0.00163737C136.23 0.303176 174.193 10.857 190.312 36.4879Z"
-                  />
-                  <image
-                    class="home__blob-img"
-                    x="0"
-                    y="0"
-                    xlink:href="assets/img/me.png"
-                  />
-                </g>
-              </svg>
-            </div>
+/* ── Section headers ── */
+.section-head { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; padding: 20px 0 8px; }
 
-            <div class="home__data">
-              <h1 class="home__title" i18n="home__title">Hi, I'm COCOAMAN</h1>
-              <h3 class="home__subtitle" i18n="home__subtitle">
-                Frontend developer
-              </h3>
-              <p class="home__description" i18n="home__description">
-                High level experience in web design and development knowledge,
-                producing quality work.
-              </p>
-              <a href="#contact" class="button button-flex">
-                <span i18n="home__contact">Contact Me</span>
-                <i class="uil uil-message button__icon"></i>
-              </a>
-            </div>
-          </div>
-          <div class="home__scroll">
-            <a href="#about" class="home__scroll-button button--flex">
-              <i class="uil uil-mouse-alt-2 home__scroll-mouse"></i>
-              <span class="home__scroll-name" i18n="home__scroll-name"
-                >Scroll down</span
-              >
-              <i class="uil uil-arrow-down home__scroll-arrow"></i>
-            </a>
-          </div>
-        </div>
-      </section>
+/* ── Day header ── */
+.day-head { padding: 20px 0 12px; }
+.day-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.day-head p { font-size: 15px; color: var(--text-secondary); margin-top: 2px; }
 
-      <!--==================== ABOUT ====================-->
-      <section class="about section" id="about">
-        <h2 class="section__title" i18n="about__title">About Me</h2>
-        <span class="section__subtitle" i18n="about__subtitle"
-          >My introduction</span
-        >
-        <div class="about__container container grid">
-          <img src="assets/img/about.png" alt="" class="about__img" />
+/* ── Route bar ── */
+.route-bar { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; box-shadow: var(--shadow-sm); font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-line; }
+.route-bar strong { color: var(--text-primary); }
 
-          <div class="about__data">
-            <p class="about__description" i18n="about__description">
-              Web developer, with extensive knowledge and years of experience,
-              working in web technologies and unity design, delivering quality
-              work.
-            </p>
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 20px; width: 1.5px; background: var(--separator); }
+.tl-item { position: relative; margin-bottom: 10px; }
+.tl-dot { position: absolute; left: -20px; top: 18px; width: 10px; height: 10px; border-radius: 50%; z-index: 1; box-shadow: 0 0 0 3px var(--bg-secondary); }
+.tl-dot.food    { background: var(--tint-red); }
+.tl-dot.spot    { background: var(--tint-blue); }
+.tl-dot.hotel   { background: var(--tint-orange); }
+.tl-dot.drink   { background: var(--tint-purple); }
+.tl-dot.transport { background: var(--text-tertiary); }
 
-            <div class="about__info">
-              <div>
-                <span class="about__info-title">6</span>
-                <span class="about__info-name" i18n="about__info-name1"
-                  >Years of <br />
-                  experience</span
-                >
-              </div>
+/* ── Card ── */
+.card { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); transition: box-shadow .25s ease; cursor: pointer; }
+.card:active { box-shadow: var(--shadow-md); }
+.card .time { font-size: 12px; font-weight: 600; color: var(--text-tertiary); letter-spacing: .01em; }
+.card .name { font-size: 17px; font-weight: 600; margin: 2px 0 4px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+.card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.45; }
 
-              <div>
-                <span class="about__info-title">3</span>
-                <span class="about__info-name" i18n="about__info-name2"
-                  >Completed <br />
-                  projects</span
-                >
-              </div>
+/* Badge */
+.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+.badge.food   { background: rgba(255,59,48,.1);  color: var(--tint-red); }
+.badge.spot   { background: rgba(0,122,255,.1);  color: var(--tint-blue); }
+.badge.drink  { background: rgba(175,82,222,.1); color: var(--tint-purple); }
 
-              <div>
-                <span class="about__info-title">6</span>
-                <span class="about__info-name" i18n="about__info-name3"
-                  >Companies <br />
-                  worked</span
-                >
-              </div>
-            </div>
+/* Budget */
+.budget { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--bg-grouped); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); font-weight: 500; }
 
-            <div class="about__buttons">
-              <a
-                download=""
-                href="assets/pdf/简历.pdf"
-                class="button button--flex"
-              >
-                <span i18n="download">Download CV</span
-                ><i class="uil uil-download-alt button__icon"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+/* Payment */
+.pays { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.pay { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+.pay.ok  { background: rgba(52,199,89,.1);  color: var(--tint-green); }
+.pay.no  { background: rgba(255,59,48,.08); color: var(--tint-red); }
+.pay.idk { background: rgba(255,149,0,.1);  color: var(--tint-orange); }
 
-      <!--==================== SKILLS ====================-->
-      <section class="skills section" id="skills">
-        <h2 class="section__title" i18n="skills__title">Skills</h2>
-        <span class="section__subtitle" i18n="skills__subtitle"
-          >My technical level</span
-        >
+/* Links row */
+.links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+  text-decoration: none !important; transition: filter .2s;
+}
+.btn:active { filter: brightness(.9); }
+.btn.nav    { background: var(--accent); color: #fff; }
+.btn.xhs    { background: #ff2442; color: #fff; }
+.btn.dp     { background: #ffa700; color: #fff; }
+.btn.rsv    { background: var(--tint-green); color: #fff; }
 
-        <div class="skills__container container grid">
-          <div>
-            <!--==================== SKILLS 1 ====================-->
-            <div class="skills__content skills__open">
-              <div class="skills__header">
-                <i class="uil uil-brackets-curly skills__icon"></i>
+/* Action Sheet */
+.as-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.as-overlay.show { opacity: 1; pointer-events: auto; }
+.as-sheet {
+  width: 100%; max-width: 420px;
+  padding: 0 8px 34px;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.as-overlay.show .as-sheet { transform: translateY(0); }
+.as-group {
+  background: rgba(255,255,255,.88); backdrop-filter: blur(20px);
+  border-radius: 14px; overflow: hidden; margin-bottom: 8px;
+}
+.as-group .as-item {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px; font-size: 18px; color: #007aff; font-weight: 500;
+  border: none; background: none; width: 100%; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.as-group .as-item + .as-item { border-top: .5px solid rgba(0,0,0,.12); }
+.as-group .as-item:active { background: rgba(0,0,0,.06); }
+.as-cancel { font-weight: 600; }
 
-                <div>
-                  <h1 class="skills__title" i18n="home__subtitle">
-                    Frontend developer
-                  </h1>
-                  <span class="skills__subtitle" i18n="skills__years"
-                    >More than * years</span
-                  >
-                </div>
+/* Details — default open */
+.details {
+  margin-top: 10px; padding-top: 10px;
+  border-top: .5px solid var(--separator);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+.details.closed { display: none; }
 
-                <i class="uil uil-angle-down skills__arrow"></i>
-              </div>
+/* ── Overview day list ── */
+.day-list .card { margin-bottom: 8px; }
+.day-list .card .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
-              <div class="skills__list grid">
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">HTML</h3>
-                    <span class="skills__number">80%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__html"></div>
-                  </div>
-                </div>
+/* ── Payment summary ── */
+.pay-summary { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+.pay-summary h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.pay-summary .warn { color: var(--tint-red); }
+.pay-summary .ok-text { color: var(--tint-green); }
 
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">CSS</h3>
-                    <span class="skills__number">80%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__css"></div>
-                  </div>
-                </div>
+/* ── Legend ── */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--text-secondary); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">JavaScript</h3>
-                    <span class="skills__number">80%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__js"></div>
-                  </div>
-                </div>
+/* ── Leaflet overrides ── */
+.leaflet-popup-content-wrapper { border-radius: var(--radius-md) !important; box-shadow: var(--shadow-lg) !important; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important; }
+.leaflet-popup-content { font-size: 14px !important; line-height: 1.5 !important; margin: 12px 14px !important; }
+.leaflet-popup-content a { color: var(--accent) !important; }
+.leaflet-popup-tip { background: #fff !important; }
+.leaflet-control-zoom a { width: 34px !important; height: 34px !important; line-height: 34px !important; font-size: 16px !important; border-radius: 10px !important; background: rgba(255,255,255,.85) !important; -webkit-backdrop-filter: blur(10px) !important; backdrop-filter: blur(10px) !important; border: .5px solid var(--separator) !important; color: var(--text-primary) !important; }
+.leaflet-control-zoom { border-radius: 12px !important; overflow: hidden; box-shadow: var(--shadow-md) !important; border: none !important; }
+.leaflet-control-attribution { font-size: 9px !important; opacity: .5; }
+</style>
+</head>
+<body>
 
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">C#</h3>
-                    <span class="skills__number">80%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__vue"></div>
-                  </div>
-                </div>
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">java</h3>
-                    <span class="skills__number">70%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__uniapp"></div>
-                  </div>
-                </div>
-                <div class="skills__data">
-                  <div class="skills__titles">
-                    <h3 class="skills__name">C/C++</h3>
-                    <span class="skills__number">60%</span>
-                  </div>
-                  <div class="skills__bar">
-                    <div class="skills__percentage skills__applets"></div>
-                  </div>
-                </div>
-               
-                
-              </div>
-            </div>
-           
-          <!-- add arrows-->
-          <div class="swiper-button-next">
-            <i class="uil uil-angle-right-b swiper-portfolio-icon"></i>
-          </div>
+<div id="map"></div>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
 
-          <div class="swiper-button-prev">
-            <i class="uil uil-angle-left-b swiper-portfolio-icon"></i>
-          </div>
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  TRIP DATA — Destination, hotel, and daily locations         ║
+// ╚══════════════════════════════════════════════════════════════╝
 
-          <!-- Add Pagination -->
-          <div class="swiper-pagination"></div>
-        </div>
-      </section>
+const DESTINATION = '四川 川西';
+const HOTEL = {"name":"成都高新西区住宿区域","lat":30.7535,"lng":103.9275};
 
-      <!--==================== CONTACT ME ====================-->
-      <section class="contact section" id="contact">
-        <h2 class="section__title" i18n="contact__title">Contact me</h2>
-        <span class="section__subtitle" i18n="contact__subtitle"
-          >Get in touch</span
-        >
+// 坐标用于路线示意。酒店卡片保留订单名称；未私下核验到精确坐标时，标记在对应城镇/区域中心。
+const DAYS = [
+  {"id":0,"label":"总览","color":"#0071e3","locations":[]},
+  {"id":1,"label":"9/25","date":"9月25日 周五","title":"沈阳 → 成都 → 康定｜落地即赶路","color":"#0071e3","locations":[
+    {"name":"成都抵达与取车","lat":30.6599157,"lng":104.0638546,"type":"transport","time":"07:25—11:25 航班","desc":"沈阳飞成都；落地、取行李与取车后尽快出发。","detail":"订单未标明天府或双流机场。首日可用驾驶窗口很紧，若13:30仍未离开成都，建议直接联系酒店并评估取消夜间山路驾驶。"},
+    {"name":"中国石油好客康居民宿","lat":30.0547858,"lng":101.9630748,"type":"hotel","time":"预计18:00—20:00","desc":"9月25日已订，康定市区住宿。","detail":"地址信息对应康定炉城街道向阳街一带；地图标记为康定城区中心。不要把首日再叠加木格措等景点。","gmap":"中国石油好客康居民宿 康定"}
+  ]},
+  {"id":2,"label":"9/26","date":"9月26日 周六","title":"康定 → 新都桥｜轻量适应","color":"#34c759","locations":[
+    {"name":"康定城区","lat":30.0547858,"lng":101.9630748,"type":"transport","time":"09:00前后","desc":"早餐后慢出发；当天里程短，重点是适应海拔和补给。"},
+    {"name":"折多山—新都桥沿线","lat":30.046713,"lng":101.4918038,"type":"spot","time":"中午—下午","desc":"只在安全停车区短停，雾大、结冰或拥堵时不追观景台。","detail":"不要在弯道、隧道口或路肩拍照；当天尽早到店休息。","xhsKeyword":"折多山 新都桥 9月 路况"},
+    {"name":"如家精选酒店（康定新都桥318国道店）","lat":30.046713,"lng":101.4918038,"type":"hotel","time":"16:00前后","desc":"9月26日已订，位于新都桥318国道沿线。","detail":"地图标记为新都桥镇中心；入住后完成加油、补水和车辆检查。","gmap":"如家精选酒店 康定新都桥318国道店"}
+  ]},
+  {"id":3,"label":"9/27","date":"9月27日 周日","title":"新都桥 → 理塘｜首次高海拔夜宿","color":"#5856d6","locations":[
+    {"name":"新都桥镇","lat":30.046713,"lng":101.4918038,"type":"transport","time":"07:30","desc":"沿G318西行，视天气在安全停车点短停。"},
+    {"name":"理塘县城","lat":29.9967,"lng":100.2696,"type":"spot","time":"下午","desc":"抵达后只做低强度活动，不安排长时间步行或饮酒。","detail":"理塘县城约4000米，是全程高反风险最高的住宿之一。出现进行性头痛、呕吐、步态不稳或静息气促，应停止上升并尽快下撤。"},
+    {"name":"理塘318国道智选假日酒店","lat":29.9967,"lng":100.2696,"type":"hotel","time":"傍晚","desc":"9月27日已订，新318线西段住宿。","detail":"地图标记为理塘县城中心。到店后确认次日G318海子山方向路况。","gmap":"理塘318国道智选假日酒店"}
+  ]},
+  {"id":4,"label":"9/28","date":"9月28日 周一","title":"理塘 → 巴塘｜海子山与姊妹湖方向","color":"#ff9500","locations":[
+    {"name":"理塘县城","lat":29.9967,"lng":100.2696,"type":"transport","time":"08:00","desc":"沿G318向巴塘，控制停留，避免天黑前仍在山口。"},
+    {"name":"海子山姊妹湖沿线","lat":30.1102,"lng":99.5579,"type":"spot","time":"中午","desc":"天气允许时在正规观景区短停；大风、雨雪或不适时直接通过。","xhsKeyword":"海子山 姊妹湖 9月 路况"},
+    {"name":"东藏明宇丽呈酒店（甘孜巴塘318国道店）","lat":30.0056,"lng":99.1107,"type":"hotel","time":"下午","desc":"9月28日已订，巴塘县城金弦子大道一带。","detail":"地图标记为巴塘县城中心。巴塘海拔明显低于理塘，适合恢复；为次日G215长途补满油。","gmap":"东藏明宇丽呈酒店 甘孜巴塘318国道店"}
+  ]},
+  {"id":5,"label":"9/29","date":"9月29日 周二","title":"巴塘 → 白玉｜G215施工路段","color":"#8e8e93","locations":[
+    {"name":"巴塘县城","lat":30.0056,"lng":99.1107,"type":"transport","time":"07:00","desc":"早出发走G215巴白公路；按施工放行与现场指挥通行。","detail":"官方信息显示白玉—巴塘相关路段至9月30日仍有半幅施工、半幅通行。当天不加措普沟等绕行景点。"},
+    {"name":"白玉县建设镇","lat":31.211418,"lng":98.824733,"type":"hotel","time":"傍晚前","desc":"抵达白玉县城后立即入住、补给。","detail":"这段高山峡谷弯急、路窄、盲区多；不要夜驾或在无防护路肩停车。"},
+    {"name":"玉宸酒店（白玉店）","lat":31.211418,"lng":98.824733,"type":"hotel","time":"晚间","desc":"9月29日已订，白玉县建设镇河东下街一带。","detail":"地图标记为建设镇中心。","gmap":"玉宸酒店 白玉店"}
+  ]},
+  {"id":6,"label":"9/30","date":"9月30日 周三","title":"白玉 → 甘孜｜甘白路长距离山路","color":"#af52de","locations":[
+    {"name":"白玉县建设镇","lat":31.211418,"lng":98.824733,"type":"transport","time":"07:00","desc":"沿甘白方向尽早出发，预留落石、施工与会车等待时间。"},
+    {"name":"甘孜县城","lat":31.622731,"lng":99.991683,"type":"hotel","time":"傍晚前","desc":"当天以赶路为主，不再叠加寺庙或支线景点。","detail":"到店后向酒店、交警或路况平台确认次日色达方向G548管制与官方绕行。"},
+    {"name":"甘孜智选假日酒店","lat":31.622731,"lng":99.991683,"type":"hotel","time":"晚间","desc":"9月30日已订，甘孜县红军路一带。","detail":"地图标记为甘孜县城中心。","gmap":"甘孜智选假日酒店"}
+  ]},
+  {"id":7,"label":"10/1","date":"10月1日 周四","title":"甘孜 → 色达洛若｜全程最高风险日","color":"#ff3b30","locations":[
+    {"name":"甘孜县城","lat":31.622731,"lng":99.991683,"type":"transport","time":"06:30前","desc":"只在确认当日可行路线后出发；国庆首日叠加车流与交通管制。"},
+    {"name":"炉霍方向官方绕行走廊","lat":31.391405,"lng":100.683326,"type":"transport","time":"白天","desc":"G548翁达—石门坎段09:00—18:00禁止车辆通行，应按官方通告选择炉霍—洛戈梁子—泥柯—亚龙等绕行。","detail":"不要尝试闯禁行段，也不要为赶酒店夜穿陌生山路。出发前必须向甘孜州交通运行监测中心、属地交警或酒店确认绕行是否仍有效。"},
+    {"name":"色达卡萨大酒店（洛若游客集散中心店）","lat":32.13611,"lng":100.45405,"type":"hotel","time":"预计晚间","desc":"10月1日已订，洛若镇游客集散中心一带。","detail":"地图标记为洛若镇中心。若官方绕行关闭或预计深夜才能到店，安全优先，立即联系酒店改期/取消。","gmap":"色达卡萨大酒店 洛若游客集散中心店"}
+  ]},
+  {"id":8,"label":"10/2","date":"10月2日 周五","title":"洛若 → 玉科｜避开G548封闭窗口","color":"#00a7a7","locations":[
+    {"name":"洛若镇","lat":32.13611,"lng":100.45405,"type":"transport","time":"07:00前","desc":"佛学院仅在预约、开放且不影响赶路时短停；否则直接离开。","detail":"当天仍受G548 09:00—18:00禁行影响。根据前一晚确认结果原路走官方绕行，不临时探索乡道。"},
+    {"name":"炉霍县城","lat":31.391405,"lng":100.683326,"type":"transport","time":"中午前后","desc":"作为补给与路线确认节点，随后转往玉科方向。"},
+    {"name":"玉科牧民庄园","lat":31.2885,"lng":101.1771,"type":"hotel","time":"天黑前","desc":"10月2日已订，玉科镇银克村然都牧场一带。","detail":"地图标记为玉科镇区域中心。住宿区平均海拔高，夜间保暖并避免洗澡过久、饮酒和剧烈活动。","gmap":"玉科牧民庄园 道孚"}
+  ]},
+  {"id":9,"label":"10/3","date":"10月3日 周六","title":"玉科 → 丹巴 → 四姑娘山｜超长转场","color":"#ff9500","locations":[
+    {"name":"玉科镇","lat":31.2885,"lng":101.1771,"type":"transport","time":"06:30—07:00","desc":"尽早出发，走道孚—丹巴—小金方向；当天不安排草原深度游。"},
+    {"name":"丹巴县城","lat":30.891933,"lng":101.877018,"type":"transport","time":"途中补给","desc":"只作加油、用餐和路况确认，不进入甲居藏寨。","detail":"G350丹巴半扇门相关路段有施工通告；法定节假日原则上不施工，仍以现场交警指挥为准。"},
+    {"name":"步语者山居民宿（四姑娘山店）","lat":30.9955986,"lng":102.8308521,"type":"hotel","time":"预计晚间","desc":"10月3日已订，四姑娘山镇住宿。","detail":"地图标记为四姑娘山镇中心。这是长距离山路日，若下午仍未到丹巴，应取消一切停留并及时联系民宿。","gmap":"步语者山居民宿 四姑娘山店"}
+  ]},
+  {"id":10,"label":"10/4","date":"10月4日 周日","title":"双桥沟半日 → 成都｜必须限时离园","color":"#ff2d55","locations":[
+    {"name":"四姑娘山双桥沟","lat":31.1166664,"lng":102.7681237,"type":"spot","time":"08:00—12:30","desc":"若已预约且体力允许，开园即入；只做观光车主线，最晚13:00左右离开。","detail":"官方2026年公布双桥沟入园时间为08:00—15:00。国庆客流下不可按平日速度估计；未约到票或天气差，直接回成都。","reserve":"https://www.sgns.cn/","xhsKeyword":"四姑娘山 双桥沟 国庆"},
+    {"name":"全季酒店（成都高新电子科大店）","lat":30.7535,"lng":103.9275,"type":"hotel","time":"预计18:00—21:00","desc":"10月4日已订，成都高新西区合作路一带。","detail":"地图标记为高新西区住宿区域。到店后先确认10月5日航班实际机场；若是天府机场，次日路程明显更长。","gmap":"全季酒店 成都高新电子科大店"}
+  ]},
+  {"id":11,"label":"10/5","date":"10月5日 周一","title":"成都 → 沈阳｜13:45返航","color":"#0071e3","locations":[
+    {"name":"成都高新西区住宿区域","lat":30.7535,"lng":103.9275,"type":"transport","time":"建议08:30前后离店","desc":"13:45—17:00成都飞沈阳；机场未在订单摘要中标明。","detail":"若从天府机场起飞，国庆期间建议更早离店；若从双流机场起飞，可按实时导航调整。必须在前一晚完成机场、航站楼与还车点核对。"}
+  ]}
+];
 
-        <div class="contact__container container grid">
-          <div>
-            <div class="contact__information">
-              <i class="uil uil-phone-alt contact__icon"></i>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  TRIP OVERVIEW CONTENT                                      ║
+// ╚══════════════════════════════════════════════════════════════╝
 
-              <div>
-                <h3 class="contact__title" i18n="tel">Call me</h3>
-                <span class="contact__subtitle" i18n="tel__number"
-                  >166********</span
-                >
-              </div>
-            </div>
+function overviewContent() {
+  return `
+<div class="hero"><h1>川西大环线 · 订单版</h1><p class="subtitle">2026.09.25—10.05 · 11天10晚 · 沈阳往返成都</p></div>
+<div class="info-grid">
+  <div class="info-card"><div class="label">固定路线</div><div class="value">成都 → 康定 → 新都桥 → 理塘 → 巴塘 → 白玉 → 甘孜 → 色达 → 玉科 → 四姑娘山 → 成都</div></div>
+  <div class="info-card"><div class="label">航班</div><div class="value">9/25 07:25—11:25 去程<br>10/5 13:45—17:00 返程</div></div>
+  <div class="info-card"><div class="label">已订金额</div><div class="value">机票 ¥5,180<br>酒店 ¥3,586.55<br>合计 ¥8,766.55</div></div>
+  <div class="info-card"><div class="label">未含</div><div class="value">租车/包车、油费、过路费、餐饮、门票与保险</div></div>
+</div>
+<div class="section-head">订单硬约束</div>
+<div class="route-bar"><strong>每天的住宿城市已锁定。</strong> 本版不再按“小环线”自由重排，而是以10晚酒店日期为终点倒推每日路线。所有酒店卡片来自订单；姓名、订单号等个人信息未展示。酒店坐标未精确核验时使用对应城镇/区域中心，因此地图连线只作方向示意，实际驾驶必须使用实时导航。</div>
+<div class="section-head">最高风险 · 先看这里</div>
+<div class="route-bar"><strong>10月1日甘孜 → 色达：</strong>官方最新通告显示，G548色达翁达至石门坎 K81—K54 在9月14日至10月15日每天09:00—18:00禁止所有车辆通行。地图按通告列出的炉霍方向绕行思路提示，但出发前必须再次向属地交警/交通部门确认；不闯管制、不夜穿陌生乡道。<br><strong>9月29日巴塘 → 白玉：</strong>G215白玉—巴塘相关路段至9月30日有半幅施工，必须早出发。<br><strong>连续高海拔：</strong>理塘、洛若、玉科均属高海拔住宿；症状加重时不得继续上升。</div>
+<div class="section-head">行程概览</div>
+<div class="day-list">${DAYS.slice(1).map(d=>`<div class="card" onclick="go(${d.id})"><div class="name"><span class="dot" style="background:${d.color}"></span>${d.label} · ${d.title}</div><div class="desc">${d.date}</div></div>`).join('')}</div>
+<div class="section-head">出发前必须完成</div>
+<div class="route-bar">1. 核对去程、返程究竟是天府机场还是双流机场，并把还车点加入导航。<br>2. 9月30日晚再次确认G548封闭与官方绕行；若无法白天安全到达色达，提前联系酒店变更。<br>3. 为全车准备防滑链、补胎/充气设备、拖车绳、保暖毯、饮水与高热量食物；每天出发前加满油。<br>4. 提前实名预约四姑娘山双桥沟；10月4日最晚约13:00离园回成都。<br>5. 每晚把次日路线、天气、加油站与备用住宿离线保存。</div>
+<div class="section-head">天气与健康</div>
+<div class="route-bar"><strong>天气：</strong>中央气象台9月23日专报提示华西秋雨仍活跃，山区地质灾害与低能见度风险需逐日核对。<br><strong>高反：</strong>一旦出现静息时症状恶化、明显呼吸困难、意识或步态异常，应立即下撤并寻求医疗帮助，不能靠吸氧后继续上升。<br><strong>驾驶：</strong>这条订单路线有多个8小时上下的山路日，建议正规包车或至少两名有高原山路经验的司机轮换。</div>
+<div class="section-head">已核对资料</div>
+<div class="route-bar"><a href="https://ganzitv.com/cms/a/182697564/content" target="_blank">甘孜州最新道路施工与G548管制</a><br><a href="https://www.ganzitv.com/cms/a/178224174/content" target="_blank">G215白玉—巴塘路况与驾驶提示</a><br><a href="https://www.nmc.cn/publish/app/bulletin/zdqxzb.html" target="_blank">中央气象台重大天气专报</a><br><a href="https://www.sgns.cn/info/notice/6461-2026-03-25-03-00-10" target="_blank">四姑娘山2026年入园时间</a> · <a href="https://www.sgns.cn/" target="_blank">四姑娘山预约入口</a><br><a href="https://www.cdc.gov/yellow-book/hcp/environmental-hazards-risks/high-altitude-travel-and-altitude-illness.html" target="_blank">CDC高海拔旅行指南</a></div>
+<div class="section-head">图例</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-blue)"></div>景点</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-orange)"></div>住宿</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-tertiary)"></div>交通节点</div>
+</div>`;
+}
 
-            <div class="contact__information">
-              <i class="uil uil-envelope contact__icon"></i>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  ENGINE — Do not modify below unless customizing behavior   ║
+// ╚══════════════════════════════════════════════════════════════╝
 
-              <div>
-                <h3 class="contact__title" i18n="email">E-mail</h3>
-                <span class="contatc__subtitle" i18n="email__address"
-                  >asoutherncat@gmail.com</span
-                >
-              </div>
-            </div>
+const map = L.map('map', { center: [HOTEL.lat || 20, HOTEL.lng || 0], zoom: HOTEL.lat ? 12 : 2, zoomControl: false, attributionControl: true });
+L.control.zoom({ position: 'topright' }).addTo(map);
+const baseLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: 'Tiles &copy; Esri'
+}).addTo(map);
 
-            <div class="contact__information">
-              <i class="uil uil-map-marker contact__icon"></i>
+// If the remote tile service is temporarily unavailable, keep the route markers usable
+// and show one readable notice instead of repeating broken image tiles.
+let tileErrorCount = 0;
+baseLayer.on('tileerror', () => {
+  tileErrorCount += 1;
+  if (tileErrorCount !== 4 || document.getElementById('map-tile-notice')) return;
+  const notice = document.createElement('div');
+  notice.id = 'map-tile-notice';
+  notice.style.cssText = 'position:absolute;left:12px;right:52px;bottom:10px;z-index:800;background:rgba(255,255,255,.94);padding:8px 10px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);font-size:12px;color:#3a3a3c';
+  notice.textContent = '底图暂时无法连接；彩色行程点仍可点击，稍后联网刷新即可恢复。';
+  document.getElementById('map').appendChild(notice);
+});
 
-              <div>
-                <h3 class="contact__title" i18n="location">Location</h3>
-                <span class="contatc__subtitle" i18n="location__detail"
-                  >HuNan , CHN</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+/* ── Geolocation ── */
+const LocateControl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd() {
+    const btn = L.DomUtil.create('button', 'locate-btn');
+    btn.innerHTML = '📍';
+    btn.title = '我的位置';
+    L.DomEvent.disableClickPropagation(btn);
+    btn.addEventListener('click', () => {
+      btn.classList.add('active');
+      map.locate({ setView: true, maxZoom: 15 });
+    });
+    this._btn = btn;
+    return btn;
+  }
+});
+new LocateControl().addTo(map);
+let locMarker, locCircle;
+map.on('locationfound', e => {
+  const r = e.accuracy / 2;
+  if (locMarker) { locMarker.setLatLng(e.latlng); locCircle.setLatLng(e.latlng).setRadius(r); }
+  else {
+    locMarker = L.marker(e.latlng, {
+      icon: L.divIcon({ className:'', html:'<div style="width:14px;height:14px;border-radius:50%;background:#007aff;border:2.5px solid #fff;box-shadow:0 0 6px rgba(0,122,255,.5)"></div><div class="loc-pulse" style="position:absolute;top:0;left:0"></div>', iconSize:[14,14], iconAnchor:[7,7] }),
+      zIndexOffset: 2000
+    }).addTo(map);
+    locCircle = L.circle(e.latlng, { radius: r, color: '#007aff', fillColor: '#007aff', fillOpacity: .08, weight: 1 }).addTo(map);
+  }
+});
+map.on('locationerror', () => {});
 
-    <!--==================== FOOTER ====================-->
-    <footer class="footer">
-      <div class="footer__bg">
-        <div class="footer__container container grid">
-          <div>
-            <h1 class="footer__title" i18n="home__title">COCOAMAN</h1>
-            <span class="footer__subtitle" i18n="home__subtitle"
-              >Frontend developer</span
-            >
-          </div>
+function icon(color, emoji) {
+  return L.divIcon({ className: '', html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.18)">${emoji||''}</div>`, iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-16] });
+}
 
-          <ul class="footer__links">
-            <li>
-              <a href="#skills" class="footer__link" i18n="skills">Skills</a>
-            </li>
-            <!-- <li>
-              <a href="#portfolio" class="footer__link" i18n="portfolio"
-                >Portfolio</a
-              >
-            </li> -->
-            <li>
-              <a href="#contact" class="footer__link" i18n="contact">Contact</a>
-            </li>
-          </ul>
+if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b>`);
 
-          <div class="footer__socials">
-            <!-- <a href="https://gitee.com/Scout66/" target="_blank">
-              <svg class="icon footer__social" aria-hidden="true">
-                <use xlink:href="#icon-gitee"></use>
-              </svg>
-            </a> -->
-            <a href="https://github.com/scccc6ut" target="_blank">
-              <svg class="icon footer__social" aria-hidden="true">
-                <use xlink:href="#icon-github"></use>
-              </svg>
-            </a>
-          </div>
-        </div>
+let markers = [], polylines = [];
+const emojis = { food:'🍽️', spot:'📍', hotel:'🏨', transport:'🚃', drink:'🍺' };
 
-        <p class="footer__copy">
-          &#169; COCOAMAN.Copy from
-          <a
-            class="footer__copy"
-            href="https://www.youtube.com/c/Bedimcode"
-            target="_blank"
-            >Bedimcode</a
-          >
-        </p>
-      </div>
-    </footer>
+function clearMap() { markers.forEach(m=>map.removeLayer(m)); polylines.forEach(p=>map.removeLayer(p)); markers=[]; polylines=[]; }
 
-    <!--==================== SCROLL TOP ====================-->
-    <a href="#" class="scrollup" id="scroll-up">
-      <i class="uil uil-arrow-up scrollup__icon"></i>
-    </a>
-    <!--==================== SWIPER JS ====================-->
-    <script src="assets/js/swiper-bundle.min.js"></script>
+function showDay(idx) {
+  clearMap();
+  if (idx === 0) {
+    const pts = [];
+    DAYS.forEach(d => d.locations.forEach(l => { if(l.lat) pts.push([l.lat,l.lng]); }));
+    if(pts.length) map.fitBounds(pts, {padding:[30,30]});
+    DAYS.slice(1).forEach(d => {
+      d.locations.filter(l=>l.time!=='—').forEach(l => {
+        const m = L.circleMarker([l.lat,l.lng], { radius:4, fillColor:d.color, color:'#fff', weight:1.5, fillOpacity:.9 }).addTo(map).bindPopup(`<b>${l.name}</b><br><span style="color:#86868b">${d.label}</span>`);
+        markers.push(m);
+      });
+    });
+    return;
+  }
+  const day = DAYS.find(d=>d.id===idx);
+  if(!day) return;
+  const coords = [];
+  day.locations.forEach(l => {
+    if(!l.lat) return;
+    const m = L.marker([l.lat,l.lng], { icon: icon(day.color, emojis[l.type]||'📌') }).addTo(map);
+    const gmapQ = l.gmap||encodeURIComponent(`${l.name} ${DESTINATION}`);
+    m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
+    markers.push(m);
+    if(l.time!=='—') coords.push([l.lat,l.lng]);
+  });
+  if(coords.length>1) { const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl); }
+  if(coords.length) map.fitBounds(coords, { padding:[40,40], maxZoom:14 });
+}
 
-    <!-- iconfont JS -->
-    <script src="assets/js/iconfont.js"></script>
-    <!-- jquery -->
-    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="assets/js/jquery.i18n.min.js"></script>
-    <!--==================== MAIN JS ====================-->
-    <script src="assets/js/main.js"></script>
+// ══════════ RENDER ══════════
+function payChips(pay) {
+  if(!pay) return '';
+  let h = '<div class="pays">';
+  const m = { cash:'💴', card:'💳', suica:'Suica', paypay:'PayPay', alipay:'支付宝', wechat:'微信' };
+  for(const [k,label] of Object.entries(m)) {
+    if(pay[k]!==undefined) { const c = pay[k]===1?'ok':pay[k]===0.5?'idk':'no'; h += `<span class="pay ${c}">${label}</span>`; }
+  }
+  return h+'</div>';
+}
 
-    <!-- translate JS -->
-    <script src="assets/js/cn-en-translate.js"></script>
-  </body>
+// ── 运行环境检测：在第三方 App 的 WebView 里，自定义 scheme 基本会被拦截 ──
+const IN_APP_WEBVIEW = (() => {
+  const ua = (navigator.userAgent || '').toLowerCase();
+  return /micromessenger|xhs|xhsdiscover|discover\/|tiktok|aweme|weibo|qq\/|qqbrowser|alipayclient|dingtalk|lark|feishu|ucbrowser|baiduboxapp|toutiao|newsarticle/.test(ua);
+})();
+
+function xhsKeyword(loc) {
+  if(loc.xhsKeyword) return loc.xhsKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function xhsAppUrl(loc) { return `xhsdiscover://search/result?keyword=${encodeURIComponent(xhsKeyword(loc))}&target_search=notes&source=deeplink`; }
+function xhsWebUrl(loc) { return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(xhsKeyword(loc))}&source=web_explore_feed`; }
+
+function dpKeyword(loc) {
+  if(loc.dianpingKeyword) return loc.dianpingKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function dpAppUrl(loc) { return `dianping://searchshoplist?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+function dpWebUrl(loc) { return `https://m.dianping.com/searchshop?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+
+window._extLocs = {};
+DAYS.forEach(d => d.locations.forEach(l => { window._extLocs[`${d.id}::${l.name}`] = l; }));
+window._xhsLocs = window._extLocs;
+
+function openExt(key, kind) {
+  const loc = window._extLocs[key]; if(!loc) return false;
+  if (IN_APP_WEBVIEW) {
+    window.location.href = kind==='dp' ? dpWebUrl(loc) : xhsWebUrl(loc);
+  } else {
+    window.location.href = kind==='dp' ? dpAppUrl(loc) : xhsAppUrl(loc);
+  }
+  return false;
+}
+function openXhs(key) { return openExt(key, 'xhs'); }
+function openDp(key)  { return openExt(key, 'dp'); }
+
+function locCard(loc, dayIdx) {
+  const dot = loc.type==='food'?'food':loc.type==='spot'?'spot':loc.type==='drink'?'drink':loc.type==='hotel'?'hotel':'transport';
+  const bdg = loc.type==='food'?'<span class="badge food">餐</span>':loc.type==='spot'?'<span class="badge spot">景</span>':loc.type==='drink'?'<span class="badge drink">饮</span>':'';
+  const uid = `d${dayIdx}-${loc.name.replace(/\W/g,'')}`;
+  const locKey = `${dayIdx}::${loc.name}`;
+  const gmapQ = loc.gmap||encodeURIComponent(`${loc.name} ${DESTINATION}`);
+  let lnk = `<button class="btn nav" onclick="openAS('${loc.name.replace(/'/g,"\\'")}',${loc.lat},${loc.lng},'${gmapQ}')">📍 导航</button>`;
+  if(loc.xhs||loc.xhsKeyword) {
+    const xhsHref = IN_APP_WEBVIEW ? xhsWebUrl(loc) : xhsAppUrl(loc);
+    const xhsLabel = IN_APP_WEBVIEW ? '📕 小红书' : '📕 小红书 App';
+    lnk += `<a href="${xhsHref}" onclick="return openXhs('${locKey.replace(/'/g,"\\'")}')" class="btn xhs">${xhsLabel}</a>`;
+  }
+  const dpEnabled = loc.dianping !== false &&
+    (loc.dianping || loc.dianpingKeyword || loc.type==='food' || loc.type==='drink');
+  if(dpEnabled) {
+    const dpHref = IN_APP_WEBVIEW ? dpWebUrl(loc) : dpAppUrl(loc);
+    const dpLabel = IN_APP_WEBVIEW ? '🍜 大众点评' : '🍜 大众点评 App';
+    lnk += `<a href="${dpHref}" onclick="return openDp('${locKey.replace(/'/g,"\\'")}')" class="btn dp">${dpLabel}</a>`;
+  }
+  if(loc.reserve) lnk += `<a href="${loc.reserve}" target="_blank" class="btn rsv">📅 预约</a>`;
+  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" onclick="if(!event.target.closest('.btn,.links'))toggle('${uid}')"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
+}
+
+function renderDay(idx) {
+  const d = DAYS.find(x=>x.id===idx); if(!d) return '';
+  const main = d.locations.filter(l=>l.time!=='—');
+  const alt = d.locations.filter(l=>l.time==='—');
+  let h = `<div class="day-head"><h2>${d.title}</h2><p>${d.date}</p></div>`;
+  if(main.length) { h += '<div class="section-head">行程</div><div class="timeline">'; main.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  if(alt.length) { h += '<div class="section-head">备选</div><div class="timeline">'; alt.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  return h;
+}
+
+// ══════════ NAV ══════════
+let cur = 0;
+const tabsEl = document.getElementById('tabs');
+const contentEl = document.getElementById('content');
+
+DAYS.forEach(d => {
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (d.id===0?' active':'');
+  btn.dataset.day = d.id;
+  btn.textContent = d.label;
+  tabsEl.appendChild(btn);
+});
+
+function go(idx) {
+  cur = idx;
+  tabsEl.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', +t.dataset.day===idx));
+  contentEl.innerHTML = idx===0 ? overviewContent() : renderDay(idx);
+  showDay(idx);
+  contentEl.scrollTo({top:0});
+  const tab = tabsEl.querySelector(`[data-day="${idx}"]`);
+  if(tab) tab.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+function toggle(id) { const el=document.getElementById(id); if(el) el.classList.toggle('closed'); }
+
+tabsEl.addEventListener('click', e => { const t=e.target.closest('.tab'); if(t) go(+t.dataset.day); });
+
+go(0);
+
+/* ── Action Sheet for Navigation ── */
+const asOverlay = document.createElement('div');
+asOverlay.className = 'as-overlay';
+asOverlay.innerHTML = `<div class="as-sheet">
+  <div class="as-group" id="as-opts"></div>
+  <div class="as-group"><button class="as-item as-cancel" onclick="closeAS()">取消</button></div>
+</div>`;
+document.body.appendChild(asOverlay);
+asOverlay.addEventListener('click', e => { if (e.target === asOverlay) closeAS(); });
+
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+function amapAppUrl(name, lat, lng) {
+  const scheme = IS_IOS ? 'iosamap' : 'androidamap';
+  return `${scheme}://viewMap?sourceApplication=trip&poiname=${encodeURIComponent(name)}&lat=${lat}&lon=${lng}&dev=0`;
+}
+function amapWebUrl(name, lat, lng) {
+  return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&src=trip&coordinate=wgs84&callnative=1`;
+}
+function openAmap(name, lat, lng) {
+  if (IN_APP_WEBVIEW) { window.open(amapWebUrl(name, lat, lng)); return; }
+  window.location.href = amapAppUrl(name, lat, lng);
+}
+
+function openAS(name, lat, lng, gmap) {
+  const q = gmap || encodeURIComponent(`${name} ${DESTINATION}`);
+  const encName = encodeURIComponent(name);
+  const safeName = name.replace(/'/g,"\\'");
+  // WebView 内 maps:// 通常被拦截，改用 https Apple Maps URL —— iOS 系统会自动拉起 Apple Maps
+  const appleUrl = IN_APP_WEBVIEW
+    ? `https://maps.apple.com/?q=${lat},${lng}&ll=${lat},${lng}&name=${encName}`
+    : `maps://maps.apple.com/?q=${lat},${lng}&name=${encName}`;
+  const googleUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+  document.getElementById('as-opts').innerHTML =
+    `<button class="as-item" onclick="window.open('${appleUrl}');closeAS()">🍎 Apple Maps</button>` +
+    `<button class="as-item" onclick="window.open('${googleUrl}');closeAS()">🗺️ Google Maps</button>` +
+    `<button class="as-item" onclick="openAmap('${safeName}',${lat},${lng});closeAS()">🧭 高德地图 App</button>`;
+  asOverlay.classList.add('show');
+}
+function closeAS() { asOverlay.classList.remove('show'); }
+</script>
+</body>
 </html>
